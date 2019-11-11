@@ -11,6 +11,7 @@ import (
 	"os/user"
 )
 
+// AllRegions is a vsriable that stores all possible AWS regions
 var AllRegions = []string{
 	"us-east-2",      //US East (Ohio)
 	"us-east-1",      //US East (N. Virginia)
@@ -58,13 +59,11 @@ func openServiceClientEC2(region string) (*ec2.EC2, error) {
 	// check erros if any, otherwise return the session pointer
 	if err != nil {
 		return nil, err
-	} else {
-		return ec2.New(sess), nil
 	}
-
+	return ec2.New(sess), nil
 }
 
-// Creates a new AWS SSH Secret key and puts the secret content in a file in ~/.ssh/ dir
+// CreateEC2KeyPair creates a new AWS SSH Secret key and puts the secret content in a file in ~/.ssh/ dir
 func CreateEC2KeyPair(region string, keyname string) error {
 
 	usr, err := user.Current()
@@ -94,7 +93,7 @@ func CreateEC2KeyPair(region string, keyname string) error {
 	return nil
 }
 
-// function to list all AWS KeyPairs in region specified
+// ListAllEC2KeyPairs is a function to list all AWS KeyPairs in region specified
 func ListAllEC2KeyPairs(region string) ([]*ec2.KeyPairInfo, error) {
 
 	svc, err := openServiceClientEC2(region)
@@ -106,10 +105,9 @@ func ListAllEC2KeyPairs(region string) ([]*ec2.KeyPairInfo, error) {
 		return nil, errors.New(fmt.Sprintf("Unable to get key pairs, %v", err))
 	}
 	return result.KeyPairs, nil
-
 }
 
-// function to delete specified key in specified region
+// DeleteEC2KeyPair is a function to delete specified key in specified region
 func DeleteEC2KeyPair(region string, keyname string) error {
 
 	svc, err := openServiceClientEC2(region)
@@ -129,7 +127,7 @@ func DeleteEC2KeyPair(region string, keyname string) error {
 
 }
 
-// Function to create security group that allows SSN through on TCP/22
+// CreateSecurityGroupForSSH is a function to create security group that allows SSN through on TCP/22
 // returns (string, error) that point to SG-ID and error if any during execution
 func CreateSecurityGroupForSSH(region string, name string, description string) (string, error) {
 
@@ -197,7 +195,7 @@ func CreateSecurityGroupForSSH(region string, name string, description string) (
 
 }
 
-// function to list all security groups, if sgID is "" then it lists all in the region
+// ListAllSecurityGroups is a function to list all security groups, if sgID is "" then it lists all in the region
 func ListAllSecurityGroups(region string, sgID string) ([]*ec2.SecurityGroup, error) {
 
 	svc, err := openServiceClientEC2(region)
