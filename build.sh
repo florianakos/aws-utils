@@ -1,3 +1,3 @@
 #!/bin/bash
 
-go build -o awshelper.go -i .
+go build -o awshelper -i .
