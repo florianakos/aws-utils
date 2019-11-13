@@ -47,7 +47,7 @@ func isValidEC2Region(compare string) bool {
 
 }
 
-// helper function to validate region and open SVC session to EC2
+// it is helper function to validate region and open SVC session to EC2
 func openServiceClientEC2(region string) (*ec2.EC2, error) {
 
 	// validate region string
