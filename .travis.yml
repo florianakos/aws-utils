@@ -5,5 +5,9 @@ language: go
 go:
 - tip # The latest version of Go.
 
+
+before_install:
+- chmod +x build.sh
+
 script:
 - "./build.sh"
