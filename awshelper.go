@@ -20,6 +20,7 @@ import (
 	"strconv"
 )
 
+// AllRegions is a vsriable that stores all possible AWS regions
 var AllRegions = []string{
 	"us-east-2",      //US East (Ohio)
 	"us-east-1",      //US East (N. Virginia)
@@ -55,7 +56,7 @@ func isValidEC2Region(compare string) bool {
 
 }
 
-// helper function to validate region and open SVC session to EC2
+// it is helper function to validate region and open SVC session to EC2
 func openServiceClientEC2(region string) (*ec2.EC2, error) {
 
 	// validate region string
@@ -67,13 +68,11 @@ func openServiceClientEC2(region string) (*ec2.EC2, error) {
 	// check erros if any, otherwise return the session pointer
 	if err != nil {
 		return nil, err
-	} else {
-		return ec2.New(sess), nil
 	}
-
+	return ec2.New(sess), nil
 }
 
-// Creates a new AWS SSH Secret key and puts the secret content in a file in ~/.ssh/ dir
+// CreateEC2KeyPair creates a new AWS SSH Secret key and puts the secret content in a file in ~/.ssh/ dir
 func CreateEC2KeyPair(region string, keyname string) error {
 
 	usr, err := user.Current()
@@ -103,7 +102,7 @@ func CreateEC2KeyPair(region string, keyname string) error {
 	return nil
 }
 
-// function to list all AWS KeyPairs in region specified
+// ListAllEC2KeyPairs is a function to list all AWS KeyPairs in region specified
 func ListAllEC2KeyPairs(region string) ([]*ec2.KeyPairInfo, error) {
 
 	svc, err := openServiceClientEC2(region)
@@ -112,13 +111,12 @@ func ListAllEC2KeyPairs(region string) ([]*ec2.KeyPairInfo, error) {
 	}
 	result, err := svc.DescribeKeyPairs(nil)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Unable to get key pairs, %v", err))
+		return nil, fmt.Errorf("Unable to get key pairs, %v", err)
 	}
 	return result.KeyPairs, nil
-
 }
 
-// function to delete specified key in specified region
+// DeleteEC2KeyPair is a function to delete specified key in specified region
 func DeleteEC2KeyPair(region string, keyname string) error {
 
 	svc, err := openServiceClientEC2(region)
@@ -130,15 +128,15 @@ func DeleteEC2KeyPair(region string, keyname string) error {
 	})
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok && aerr.Code() == "InvalidKeyPair.Duplicate" {
-			return errors.New(fmt.Sprintf("Key pair %q does not exist.", keyname))
+			return fmt.Errorf("Key pair %q does not exist.", keyname)
 		}
-		return errors.New(fmt.Sprintf("Unable to delete key pair: %s, %v.", keyname, err))
+		return fmt.Errorf("Unable to delete key pair: %s, %v.", keyname, err)
 	}
 	return nil
 
 }
 
-// Function to create security group that allows SSN through on TCP/22
+// CreateSecurityGroupForSSH is a function to create security group that allows SSN through on TCP/22
 // returns (string, error) that point to SG-ID and error if any during execution
 func CreateSecurityGroupForSSH(region string, name string, description string) (string, error) {
 
@@ -154,7 +152,7 @@ func CreateSecurityGroupForSSH(region string, name string, description string) (
 	// Get a list of VPCs so we can associate the group with the first VPC.
 	availableVPCs, err := svc.DescribeVpcs(nil)
 	if err != nil {
-		return "", errors.New(fmt.Sprintf("Unable to describe VPCs, %v", err))
+		return "", fmt.Errorf("Unable to describe VPCs, %v", err)
 	}
 	if len(availableVPCs.Vpcs) == 0 {
 		return "", errors.New("No VPCs found to associate security group with.")
@@ -171,16 +169,13 @@ func CreateSecurityGroupForSSH(region string, name string, description string) (
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case "InvalidVpcID.NotFound":
-				return "", errors.New(fmt.Sprintf("Unable to find VPC with ID %q.", vpcID))
+				return "", fmt.Errorf("Unable to find VPC with ID %q.", vpcID)
 			case "InvalidGroup.Duplicate":
-				return "", errors.New(fmt.Sprintf("Security group %q already exists.", name))
+				return "", fmt.Errorf("Security group %q already exists.", name)
 			}
 		}
-		return "", errors.New(fmt.Sprintf("Unable to create security group %q, %v", name, err))
+		return "", fmt.Errorf("Unable to create security group %q, %v", name, err)
 	}
-
-	// fmt.Printf("Created security group %s with VPC %s.\n",
-	//     aws.StringValue(createSGResult.GroupId), vpcID)
 
 	newSGID := createSGResult.GroupId
 
@@ -199,14 +194,14 @@ func CreateSecurityGroupForSSH(region string, name string, description string) (
 		},
 	})
 	if err != nil {
-		return "", errors.New(fmt.Sprintf("Unable to set security group %q ingress, %v", name, err))
+		return "", fmt.Errorf("Unable to set security group %q ingress, %v", name, err)
 	}
 	// return SG-ID and nil error
 	return *newSGID, nil
 
 }
 
-// function to list all security groups, if sgID is "" then it lists all in the region
+// ListAllSecurityGroups is a function to list all security groups, if sgID is "" then it lists all in the region
 func ListAllSecurityGroups(region string, sgID string) ([]*ec2.SecurityGroup, error) {
 
 	svc, err := openServiceClientEC2(region)
@@ -223,10 +218,10 @@ func ListAllSecurityGroups(region string, sgID string) ([]*ec2.SecurityGroup, er
 			case "InvalidGroupId.Malformed":
 				fallthrough
 			case "InvalidGroup.NotFound":
-				return nil, errors.New(fmt.Sprintf("%s.", aerr.Message()))
+				return nil, fmt.Errorf("%s.", aerr.Message())
 			}
 		}
-		return nil, errors.New(fmt.Sprintf("Unable to get descriptions for security groups, %v", err))
+		return nil, fmt.Errorf("Unable to get descriptions for security groups, %v", err)
 	}
 	return result.SecurityGroups, nil
 

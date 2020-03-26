@@ -1,0 +1,13 @@
+os: linux # Only use OSX if it's really needed!
+
+language: go
+
+go:
+- tip # The latest version of Go.
+
+
+before_install:
+- chmod +x build.sh
+
+script:
+- "./build.sh"
