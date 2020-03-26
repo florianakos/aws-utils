@@ -9,15 +9,16 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"io/ioutil"
 	"os/user"
-	
+
 	//aws ect2-helper imports
-	"github.com/aws/aws-sdk-go/service/cloudwatch"
-	_"github.com/aws/aws-sdk-go/aws/awserr"
-	ui "github.com/gizak/termui"
 	"github.com/Arafatk/glot"
-	"time"
+	_ "github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/cloudwatch"
+	ui "github.com/gizak/termui/v3"
+	"github.com/gizak/termui/v3/widgets"
 	"log"
 	"strconv"
+	"time"
 )
 
 // AllRegions is a vsriable that stores all possible AWS regions
@@ -64,7 +65,12 @@ func openServiceClientEC2(region string) (*ec2.EC2, error) {
 		return nil, errors.New("Invalid region name!")
 	}
 	// open session in region
-	sess, err := session.NewSession(&aws.Config{Region: aws.String(region)})
+	sess, err := session.NewSessionWithOptions(session.Options{
+		Profile: "personal-aws",
+		Config: aws.Config{
+			Region: aws.String(region),
+		},
+	})
 	// check erros if any, otherwise return the session pointer
 	if err != nil {
 		return nil, err
@@ -228,71 +234,70 @@ func ListAllSecurityGroups(region string, sgID string) ([]*ec2.SecurityGroup, er
 }
 
 func GetAmazonImageID(region string) string {
-    AMIs := make(map[string]string)
+	AMIs := make(map[string]string)
 
-    AMIs["eu-central-1"] = "ami-0bdf93799014acdc4"
-    AMIs["eu-west-1"] = "ami-00035f41c82244dab"
-    AMIs["eu-west-2"] = "ami-0b0a60c0a2bd40612"
-    AMIs["eu-west-3"] = "ami-08182c55a1c188dee"
-    AMIs["us-east-1"] = "ami-0ac019f4fcb7cb7e6"
-    AMIs["us-east-2"] = "ami-0f65671a86f061fcd"
-    AMIs["us-west-1"] = "ami-063aa838bd7631e0b"
-    AMIs["us-west-2"] = "ami-0bbe6b35405ecebdb"
-    AMIs["ca-central-1"] = "ami-0427e8367e3770df1"
-    AMIs["ap-northeast-1"] = "ami-07ad4b1c3af1ea214"
-    AMIs["ap-northeast-2"] = "ami-06e7b9c5e0c4dd014"
-    AMIs["ap-southeast-1"] = "ami-0c5199d385b432989"
-    AMIs["ap-southeast-2"] = "ami-07a3bd4944eb120a0"
-    AMIs["ap-south-1"] = "ami-0d773a3b7bb2bb1c1"
-    AMIs["sa-east-1"] = "ami-03c6239555bb12112"
+	AMIs["eu-central-1"] = "ami-0ec1ba09723e5bfac"
+	AMIs["eu-west-1"] = "ami-00035f41c82244dab"
+	AMIs["eu-west-2"] = "ami-0b0a60c0a2bd40612"
+	AMIs["eu-west-3"] = "ami-08182c55a1c188dee"
+	AMIs["us-east-1"] = "ami-0ac019f4fcb7cb7e6"
+	AMIs["us-east-2"] = "ami-0f65671a86f061fcd"
+	AMIs["us-west-1"] = "ami-063aa838bd7631e0b"
+	AMIs["us-west-2"] = "ami-0bbe6b35405ecebdb"
+	AMIs["ca-central-1"] = "ami-0427e8367e3770df1"
+	AMIs["ap-northeast-1"] = "ami-07ad4b1c3af1ea214"
+	AMIs["ap-northeast-2"] = "ami-06e7b9c5e0c4dd014"
+	AMIs["ap-southeast-1"] = "ami-0c5199d385b432989"
+	AMIs["ap-southeast-2"] = "ami-07a3bd4944eb120a0"
+	AMIs["ap-south-1"] = "ami-0d773a3b7bb2bb1c1"
+	AMIs["sa-east-1"] = "ami-03c6239555bb12112"
 
-    return AMIs[region]
+	return AMIs[region]
 }
-
 
 func GetSecurityGroupID(region string) string {
-    sgIDs := make(map[string]string)
+	sgIDs := make(map[string]string)
 
-    sgIDs["eu-central-1"] = "sg-0d1e241f54b384e14"
-    sgIDs["eu-west-1"] = "sg-060ada79ba75d5f45"
-    sgIDs["eu-west-2"] = "sg-0c173e554e0aa8f3a"
-    sgIDs["eu-west-3"] = "sg-0426c06878fdc4905"
-    sgIDs["us-east-1"] = "sg-0b38a2fa798dd89c3"
-    sgIDs["us-east-2"] = "sg-027d0bf275df6f383"
-    sgIDs["us-west-1"] = "sg-06539e12e6bb31918"
-    sgIDs["us-west-2"] = "sg-0b4379ae0408314ca"
-    sgIDs["ca-central-1"] = "sg-0fcec04e4ea7d0696"
-    sgIDs["ap-northeast-1"] = "sg-0ae481d45f04496fa"
-    sgIDs["ap-northeast-2"] = "sg-0cee9791588813b5c"
-    sgIDs["ap-southeast-1"] = "sg-035e5c350e34f1366"
-    sgIDs["ap-southeast-2"] = "sg-0a98f5e20ecb1854c"
-    sgIDs["ap-south-1"] = "sg-069e71d7037f7f909"
-    sgIDs["sa-east-1"] = "sg-0b6bacc3b50438c64"
+	sgIDs["eu-central-1"] = "sg-0df229a56b6b67832"
+	sgIDs["eu-west-1"] = ""
+	sgIDs["eu-west-2"] = ""
+	sgIDs["eu-west-3"] = ""
+	sgIDs["us-east-1"] = ""
+	sgIDs["us-east-2"] = ""
+	sgIDs["us-west-1"] = ""
+	sgIDs["us-west-2"] = ""
+	sgIDs["ca-central-1"] = ""
+	sgIDs["ap-northeast-1"] = ""
+	sgIDs["ap-northeast-2"] = ""
+	sgIDs["ap-southeast-1"] = ""
+	sgIDs["ap-southeast-2"] = ""
+	sgIDs["ap-south-1"] = ""
+	sgIDs["sa-east-1"] = ""
 
-    return sgIDs[region]
+	return sgIDs[region]
 }
 
-
 func GetKeyPairs(region string) ([]string, error) {
-    keys := make([]string, 0)
-
-    sess, err := session.NewSession(&aws.Config{
-        Region: aws.String(region)},
-    )
-    if err != nil {
-        return keys, err
-    }
-
-    svc := ec2.New(sess)
-    result, err := svc.DescribeKeyPairs(nil)
-    if err != nil {
-        return keys, err
-    }
-
-    for _, pair := range result.KeyPairs {
-        keys = append(keys, fmt.Sprintf("%s", *pair.KeyName))
-    }
-    return keys, nil
+	fmt.Println("Getting keys...")
+	keys := make([]string, 0)
+	sess, err := session.NewSessionWithOptions(session.Options{
+		Profile: "personal-aws",
+		Config: aws.Config{
+			Region: aws.String(region),
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	svc := ec2.New(sess)
+	result, err := svc.DescribeKeyPairs(nil)
+	if err != nil {
+		return keys, err
+	}
+	for _, pair := range result.KeyPairs {
+		keys = append(keys, fmt.Sprintf("%s", *pair.KeyName))
+	}
+	return keys, nil
 }
 
 func PlotGraph(region string, instanceID string, data []Metric) {
@@ -302,194 +307,207 @@ func PlotGraph(region string, instanceID string, data []Metric) {
 
 	plot1, _ := glot.NewPlot(dimensions, persist, debug)
 	plot1.SetTitle(instanceID + " - " + region)
-	plot1.SetYrange(0,100)
+	plot1.SetYrange(0, 100)
 	plot1.AddPointGroup(data[0].MetricName, "lines", data[0].Values)
-	plot1.SavePlot(instanceID+"_"+data[0].MetricName+".png")
+	plot1.SavePlot(instanceID + "_" + data[0].MetricName + ".png")
 
 	plot2, _ := glot.NewPlot(dimensions, persist, debug)
 	plot2.SetTitle(instanceID + " - " + region)
 	plot2.AddPointGroup(data[1].MetricName, "lines", data[1].Values)
-	plot2.SavePlot(instanceID+"_"+data[1].MetricName+".png")
+	plot2.SavePlot(instanceID + "_" + data[1].MetricName + ".png")
 }
-
 
 func CreateInstance(region string, keypair string, sgparam string, amid string) (string, error) {
-
 	// Create Amazon AWS Session in the specified region
-    sess, err := session.NewSession(&aws.Config{
-        Region: aws.String(region)},
-    )
-    if err != nil { return "", err }
-    // Create Amazon AWS Service client using the session
-    svc := ec2.New(sess)
-    
+	sess, err := session.NewSessionWithOptions(session.Options{
+		Profile: "personal-aws",
+		Config: aws.Config{
+			Region: aws.String(region),
+		},
+	})
+	if err != nil {
+		return "", err
+	}
+	// Create Amazon AWS Service client using the session
+	svc := ec2.New(sess)
 
-    sgID := sgparam  //FloSec2 in London
-    //sgID := "sg-0d1e241f54b384e14"  //FloSec in Frankfurt
-    sgArray := make([]*string, 1)
-    sgArray[0] = &sgID
+	sgID := sgparam //FloSec2 in London
+	//sgID := "sg-0d1e241f54b384e14"  //FloSec in Frankfurt
+	sgArray := make([]*string, 1)
+	sgArray[0] = &sgID
 
-    runResult, err := svc.RunInstances(&ec2.RunInstancesInput{
-        // An Amazon Linux AMI ID for t2.micro instances in the us-west-2 region
-        ImageId:      aws.String(amid), // LONDON
-        //ImageId:      aws.String("ami-0bdf93799014acdc4"),  // FRANKFURT
-        InstanceType: aws.String("t2.micro"),
-        KeyName:      aws.String(keypair),
-        SecurityGroupIds: sgArray,
-        MinCount:     aws.Int64(1),
-        MaxCount:     aws.Int64(1),
-    })
+	runResult, err := svc.RunInstances(&ec2.RunInstancesInput{
+		// An Amazon Linux AMI ID for t2.micro instances in the us-west-2 region
+		ImageId: aws.String(amid), // LONDON
+		//ImageId:      aws.String("ami-0bdf93799014acdc4"),  // FRANKFURT
+		InstanceType:     aws.String("t2.micro"),
+		KeyName:          aws.String(keypair),
+		SecurityGroupIds: sgArray,
+		MinCount:         aws.Int64(1),
+		MaxCount:         aws.Int64(1),
+	})
 
-    if err != nil {
-        //fmt.Println("Could not create instance", err)
-        return "", err
-    }
-    
-    newInstanceID := *runResult.Instances[0].InstanceId
-    //fmt.Println("Created instance", newInstanceID)
-    return newInstanceID, nil
+	if err != nil {
+		//fmt.Println("Could not create instance", err)
+		return "", err
+	}
+
+	newInstanceID := *runResult.Instances[0].InstanceId
+	//fmt.Println("Created instance", newInstanceID)
+	return newInstanceID, nil
 }
-
 
 // helper function to tag a newly created instance
 func TagInstance(region string, instanceid string, nametag string) error {
 
-	sess, err := session.NewSession(&aws.Config{
-        Region: aws.String(region)},
-    )
-    if err != nil {
-        //fmt.Println("Error creating session ", err)
-        return err
-    }
+	sess, err := session.NewSessionWithOptions(session.Options{
+		Profile: "personal-aws",
+		Config: aws.Config{
+			Region: aws.String(region),
+		},
+	})
+	if err != nil {
+		//fmt.Println("Error creating session ", err)
+		return err
+	}
 
-    svc := ec2.New(sess)
+	svc := ec2.New(sess)
 
-	 // Add tags to the created instance
-    _, errtag := svc.CreateTags(&ec2.CreateTagsInput{
-        Resources: []*string{&instanceid},
-        Tags: []*ec2.Tag{
-            {
-                Key:   aws.String("Name"),
-                Value: aws.String(nametag),
-            },
-        },
-    })
+	// Add tags to the created instance
+	_, errtag := svc.CreateTags(&ec2.CreateTagsInput{
+		Resources: []*string{&instanceid},
+		Tags: []*ec2.Tag{
+			{
+				Key:   aws.String("Name"),
+				Value: aws.String(nametag),
+			},
+		},
+	})
 
-    if errtag != nil {
-        //log.Println("Could not create tags for instance", runResult.Instances[0].InstanceId, errtag)
-        return errtag
-    }
-    //fmt.Println("Instance was successfully tagged.")
-    return nil
+	if errtag != nil {
+		//log.Println("Could not create tags for instance", runResult.Instances[0].InstanceId, errtag)
+		return errtag
+	}
+	//fmt.Println("Instance was successfully tagged.")
+	return nil
 }
 
 func StartInstance(region string, instanceID string) error {
-	sess, err := session.NewSession(&aws.Config{
-        Region: aws.String(region)},
-    )
-    if err != nil {
-        //fmt.Println("Error creating session ", err)
-        return err
-    }
+	sess, err := session.NewSessionWithOptions(session.Options{
+		Profile: "personal-aws",
+		Config: aws.Config{
+			Region: aws.String(region),
+		},
+	})
+	if err != nil {
+		//fmt.Println("Error creating session ", err)
+		return err
+	}
 
-    svc := ec2.New(sess)
+	svc := ec2.New(sess)
 
-    input := &ec2.StartInstancesInput{
-            InstanceIds: []*string{
-                aws.String(instanceID),
-            },
-            DryRun: aws.Bool(false),
-    }
-    _, err = svc.StartInstances(input)
-    return err
+	input := &ec2.StartInstancesInput{
+		InstanceIds: []*string{
+			aws.String(instanceID),
+		},
+		DryRun: aws.Bool(false),
+	}
+	_, err = svc.StartInstances(input)
+	return err
 }
 
 func StopInstance(region string, instanceID string) error {
-	sess, err := session.NewSession(&aws.Config{ Region: aws.String(region)}, )
-    if err != nil {
-        return err
-    }
+	sess, err := session.NewSessionWithOptions(session.Options{
+		Profile: "personal-aws",
+		Config: aws.Config{
+			Region: aws.String(region),
+		},
+	})
+	if err != nil {
+		return err
+	}
 
-    svc := ec2.New(sess)
+	svc := ec2.New(sess)
 
-    input := &ec2.StopInstancesInput{
-            InstanceIds: []*string{
-                aws.String(instanceID),
-            },
-            DryRun: aws.Bool(false),
-    }
-    _, err = svc.StopInstances(input)
-    return err
+	input := &ec2.StopInstancesInput{
+		InstanceIds: []*string{
+			aws.String(instanceID),
+		},
+		DryRun: aws.Bool(false),
+	}
+	_, err = svc.StopInstances(input)
+	return err
 }
 
 func TerminateInstanceByID(region string, instanceID string) error {
-	sess, err := session.NewSession(&aws.Config{ Region: aws.String(region)}, )
-    if err != nil {
-        return err
-    }
+	sess, err := session.NewSessionWithOptions(session.Options{
+		Profile: "personal-aws",
+		Config: aws.Config{
+			Region: aws.String(region),
+		},
+	})
+	if err != nil {
+		return err
+	}
 
-    svc := ec2.New(sess)
+	svc := ec2.New(sess)
 
-    input := &ec2.TerminateInstancesInput{
-            InstanceIds: []*string{
-                aws.String(instanceID),
-            },
-            DryRun: aws.Bool(false),
-    }
-    _, err = svc.TerminateInstances(input)
-    return err
+	input := &ec2.TerminateInstancesInput{
+		InstanceIds: []*string{
+			aws.String(instanceID),
+		},
+		DryRun: aws.Bool(false),
+	}
+	_, err = svc.TerminateInstances(input)
+	return err
 }
 
+func convertToFloatArray(input []int) []float64 {
+	var output []float64
+	for _, v := range input {
+		output = append(output, float64(v))
+	}
+	return output
+}
 
 func RenderGraphs(metricArray []Metric) {
-	err := ui.Init()
-	if err != nil {
+	if err := ui.Init(); err != nil {
 		panic(err)
-		fmt.Println(err)
+		fmt.Println("failed to initialize termui: %v", err)
 	}
-	//defer ui.Close()
+	defer ui.Close()
 
-	CPUData, NetworkData := metricArray[0], metricArray[1]
-		
-	splCPU := ui.NewSparkline()
-	splCPU.Data = CPUData.Values
-	splCPU.Height = 12
-	splCPU.LineColor = ui.ColorYellow
+	CPUData, NetworkData := metricArray[0].Values, metricArray[1].Values
 
+	sl0 := widgets.NewSparkline()
+	sl0.Data = convertToFloatArray(CPUData)
+	sl0.LineColor = ui.ColorGreen
 
-	spls1 := ui.NewSparklines(splCPU)
-	spls1.Height = 15
-	spls1.Width = len(CPUData.Values)+3
-	spls1.BorderFg = ui.ColorMagenta
-	spls1.X = 1
-	spls1.Y = 1
-	spls1.BorderLabel = " "+CPUData.MetricName+` [%] `
+	// single
+	slg0 := widgets.NewSparklineGroup(sl0)
+	slg0.Title = "CPU Usage"
+	slg0.SetRect(0, 0, 40, 15)
 
-	splPacketsOut := ui.NewSparkline()
-	splPacketsOut.Data = NetworkData.Values
-	splPacketsOut.Height = 12
-	splPacketsOut.LineColor = ui.ColorGreen
+	sl1 := widgets.NewSparkline()
+	sl1.Data = convertToFloatArray(NetworkData)
+	sl1.LineColor = ui.ColorGreen
 
+	// single
+	slg1 := widgets.NewSparklineGroup(sl1)
+	slg1.Title = "Network I/O"
+	slg1.SetRect(0, 50, 40, 15)
 
-	spls2 := ui.NewSparklines(splPacketsOut)
-	spls2.Height = 15
-	spls2.Width = len(NetworkData.Values)+3
-	spls2.BorderFg = ui.ColorMagenta
-	spls2.X = 1
-	spls2.Y = 16	
-	spls2.BorderLabel = " "+NetworkData.MetricName+` [#] `
+	ui.Render(slg0, slg1)
 
-	ui.Render(spls1, spls2)
-
-	ui.Handle("q", func(ui.Event) {
-		ui.StopLoop()
-	})
-	ui.Loop()
-	ui.Close()
+	uiEvents := ui.PollEvents()
+	for {
+		e := <-uiEvents
+		switch e.ID {
+		case "q", "<C-c>":
+			return
+		}
+	}
 }
-
-
-
 
 var counter int64 = 0
 
@@ -499,7 +517,7 @@ func buildMetricDataQuery(metricname, instanceID string) *cloudwatch.MetricDataQ
 		Id: aws.String("id" + strconv.FormatInt(counter, 10)),
 		MetricStat: &cloudwatch.MetricStat{
 			Period: aws.Int64(60),
-			Stat: 	aws.String("Average"),
+			Stat:   aws.String("Average"),
 			Metric: &cloudwatch.Metric{
 				MetricName: aws.String(metricname),
 				Dimensions: []*cloudwatch.Dimension{
@@ -508,32 +526,35 @@ func buildMetricDataQuery(metricname, instanceID string) *cloudwatch.MetricDataQ
 						Value: aws.String(instanceID),
 					},
 				},
-			Namespace:  aws.String("AWS/EC2"),
+				Namespace: aws.String("AWS/EC2"),
 			},
 		},
 	}
 }
 
 type Metric struct {
-	Region string
+	Region     string
 	InstanceID string
 	MetricName string
-	Values []int
+	Values     []int
 }
 
 func GetCloudWatchMetrics(region string, instanceID string) []Metric {
 	counter = 0
-
-	
-	sess, err := session.NewSession(&aws.Config{ Region: aws.String(region)}, )
+	sess, err := session.NewSessionWithOptions(session.Options{
+		Profile: "personal-aws",
+		Config: aws.Config{
+			Region: aws.String(region),
+		},
+	})
 	if err != nil {
 		fmt.Println(err)
 	}
 	cw := cloudwatch.New(sess)
 
 	dataInput := &cloudwatch.GetMetricDataInput{
-		StartTime:  aws.Time(time.Now().Add(-480* time.Minute)),
-		EndTime:    aws.Time(time.Now()),
+		StartTime: aws.Time(time.Now().Add(-480 * time.Minute)),
+		EndTime:   aws.Time(time.Now()),
 		MetricDataQueries: []*cloudwatch.MetricDataQuery{
 			buildMetricDataQuery("CPUUtilization", instanceID),
 			buildMetricDataQuery("NetworkPacketsOut", instanceID),
@@ -548,7 +569,7 @@ func GetCloudWatchMetrics(region string, instanceID string) []Metric {
 
 	//var CPUMetric Metric
 
-	//CPUMetric = 
+	//CPUMetric =
 
 	//fmt.Printf("%+v",data.MetricDataResults[0])
 	//fmt.Println(saveMetric(region, instanceID, data.MetricDataResults[0]))
@@ -560,21 +581,23 @@ func GetCloudWatchMetrics(region string, instanceID string) []Metric {
 }
 
 func roundUp(val float64) int {
-    if val > 0 { return int(val+1.0) }
-    return int(val)
+	if val > 0 {
+		return int(val + 1.0)
+	}
+	return int(val)
 }
 
 func saveMetric(region string, instanceID string, source *cloudwatch.MetricDataResult) Metric {
 	data := make([]int, 0)
 
-	for i:=len(source.Values); i>0; i-- {
+	for i := len(source.Values); i > 0; i-- {
 		data = append(data, roundUp(*source.Values[i-1]))
 	}
 
 	return Metric{
-		Region: region,
+		Region:     region,
 		InstanceID: instanceID,
 		MetricName: *source.Label,
-		Values: data,
+		Values:     data,
 	}
 }
