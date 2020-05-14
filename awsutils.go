@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net"
+	"os"
 	"os/user"
 	"strconv"
 	"time"
@@ -18,6 +20,10 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
+
+	"golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/agent"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 // AllRegions is a vsriable that stores all possible AWS regions
@@ -603,4 +609,88 @@ func saveMetric(region string, instanceID string, source *cloudwatch.MetricDataR
 		MetricName: *source.Label,
 		Values:     data,
 	}
+}
+
+// Connect is a function to configure the connection with username, authentication methods
+func Connect(host string, username string, methods ...ssh.AuthMethod) (*ssh.Client, error) {
+	fmt.Printf("Logging in with username: [%s] and PKI\n\n", username)
+	cfg := ssh.ClientConfig{
+		User:            username,
+		Auth:            methods,
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+	}
+	return ssh.Dial("tcp", host, &cfg)
+}
+
+// KeyPair is a function to help retrieve the key from the filesystem, assumes it to be under ~/.ssh/ folder
+func KeyPair(keyFile string) (ssh.AuthMethod, error) {
+	pem, err := ioutil.ReadFile(keyFile)
+	if err != nil {
+		return nil, err
+	}
+	key, err := ssh.ParsePrivateKey(pem)
+	if err != nil {
+		return nil, err
+	}
+	return ssh.PublicKeys(key), nil
+}
+
+// SSHAgent creates an SSH agent
+func SSHAgent() (ssh.AuthMethod, error) {
+	agentSock, err := net.Dial("unix", os.Getenv("SSH_AUTH_SOCK"))
+	if err != nil {
+		return nil, err
+	}
+	return ssh.PublicKeysCallback(agent.NewClient(agentSock).Signers), nil
+}
+
+// OpenSession helps to open the session in an interactive way in current terminal session
+func OpenSession(username string, ipaddress string, keyname string) {
+	agent, err := SSHAgent()
+	if err != nil {
+		return
+	}
+
+	usr, err := user.Current()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	publicKey, err := KeyPair(string(usr.HomeDir) + "/.ssh/" + keyname)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	client, err := Connect(ipaddress+":22", username, publicKey, agent)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer client.Close()
+
+	sess, err := client.NewSession()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer sess.Close()
+
+	sess.Stdin = os.Stdin
+	sess.Stdout = os.Stdout
+	sess.Stderr = os.Stderr
+	modes := ssh.TerminalModes{
+		ssh.ECHO:          1,      // please print what I type
+		ssh.ECHOCTL:       0,      // please don't print control chars
+		ssh.TTY_OP_ISPEED: 115200, // baud in
+		ssh.TTY_OP_OSPEED: 115200, // baud out
+	}
+	termFD := int(os.Stdin.Fd())
+	w, h, _ := terminal.GetSize(termFD)
+	termState, _ := terminal.MakeRaw(termFD)
+	defer terminal.Restore(termFD, termState)
+	sess.RequestPty("xterm-256color", h, w, modes)
+	sess.Shell()
+	sess.Wait()
 }
