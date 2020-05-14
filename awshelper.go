@@ -517,7 +517,7 @@ func RenderGraphs(metricArray []Metric) {
 	}
 }
 
-var counter int64 = 0
+var counter int64
 
 func buildMetricDataQuery(metricname, instanceID string) *cloudwatch.MetricDataQuery {
 	counter++
