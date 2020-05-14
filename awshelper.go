@@ -3,22 +3,21 @@ package awshelper
 import (
 	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"io/ioutil"
-	"os/user"
-
-	//aws ect2-helper imports
-	"github.com/Arafatk/glot"
-	_ "github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/cloudwatch"
-	ui "github.com/gizak/termui/v3"
-	"github.com/gizak/termui/v3/widgets"
 	"log"
+	"os/user"
 	"strconv"
 	"time"
+
+	"github.com/Arafatk/glot"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	_ "github.com/aws/aws-sdk-go/aws/awserr" //
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/cloudwatch"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	ui "github.com/gizak/termui/v3"
+	"github.com/gizak/termui/v3/widgets"
 )
 
 // AllRegions is a vsriable that stores all possible AWS regions
@@ -236,7 +235,7 @@ func ListAllSecurityGroups(region string, sgID string) ([]*ec2.SecurityGroup, er
 func GetAmazonImageID(region string) string {
 	AMIs := make(map[string]string)
 
-	AMIs["eu-central-1"] = "ami-0ec1ba09723e5bfac"
+	AMIs["eu-central-1"] = "ami-001d09d44e27bbb7c" //"ami-0ec1ba09723e5bfac"
 	// AMIs["eu-west-1"] = "ami-00035f41c82244dab"
 	// AMIs["eu-west-2"] = "ami-0b0a60c0a2bd40612"
 	// AMIs["eu-west-3"] = "ami-08182c55a1c188dee"
@@ -340,7 +339,7 @@ func CreateInstance(region string, keypair string, sgparam string, amid string) 
 		// An Amazon Linux AMI ID for t2.micro instances in the us-west-2 region
 		ImageId: aws.String(amid), // LONDON
 		//ImageId:      aws.String("ami-0bdf93799014acdc4"),  // FRANKFURT
-		InstanceType:     aws.String("t2.micro"),
+		InstanceType:     aws.String("t2.xlarge"),
 		KeyName:          aws.String(keypair),
 		SecurityGroupIds: sgArray,
 		MinCount:         aws.Int64(1),
