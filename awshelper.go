@@ -61,7 +61,7 @@ func openServiceClientEC2(region string) (*ec2.EC2, error) {
 
 	// validate region string
 	if !isValidEC2Region(region) {
-		return nil, errors.New("Invalid region name!")
+		return nil, errors.New("invalid region name")
 	}
 	// open session in region
 	sess, err := session.NewSessionWithOptions(session.Options{
@@ -82,7 +82,7 @@ func CreateEC2KeyPair(region string, keyname string) error {
 
 	usr, err := user.Current()
 	if err != nil {
-		return errors.New("Unable to determine UNIX user HOME directory!")
+		return errors.New("unable to determine UNIX user HOME directory")
 	}
 
 	svc, err := openServiceClientEC2(region)
@@ -93,15 +93,15 @@ func CreateEC2KeyPair(region string, keyname string) error {
 	newKey, err := svc.CreateKeyPair(&ec2.CreateKeyPairInput{KeyName: aws.String(keyname)})
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok && aerr.Code() == "InvalidKeyPair.Duplicate" {
-			return errors.New("Keypair already exists with that name in that region!")
+			return errors.New("keypair already exists with that name in that region")
 		}
-		return errors.New("Unable to create keypair!")
+		return errors.New("unable to create keypair")
 	}
 
 	err = ioutil.WriteFile(usr.HomeDir+"/.ssh/"+keyname+".pem",
 		[]byte(*newKey.KeyMaterial), 0600)
 	if err != nil {
-		return errors.New("Error writing secret key to file!")
+		return errors.New("error writing secret key to file")
 	}
 
 	return nil
@@ -116,7 +116,7 @@ func ListAllEC2KeyPairs(region string) ([]*ec2.KeyPairInfo, error) {
 	}
 	result, err := svc.DescribeKeyPairs(nil)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to get key pairs, %v", err)
+		return nil, fmt.Errorf("unable to get key pairs, %v", err)
 	}
 	return result.KeyPairs, nil
 }
@@ -133,9 +133,9 @@ func DeleteEC2KeyPair(region string, keyname string) error {
 	})
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok && aerr.Code() == "InvalidKeyPair.Duplicate" {
-			return fmt.Errorf("Key pair %q does not exist.", keyname)
+			return fmt.Errorf("key pair %q does not exist", keyname)
 		}
-		return fmt.Errorf("Unable to delete key pair: %s, %v.", keyname, err)
+		return fmt.Errorf("unable to delete key pair: %s, %v", keyname, err)
 	}
 	return nil
 
@@ -160,7 +160,7 @@ func CreateSecurityGroupForSSH(region string, name string, description string) (
 		return "", fmt.Errorf("Unable to describe VPCs, %v", err)
 	}
 	if len(availableVPCs.Vpcs) == 0 {
-		return "", errors.New("No VPCs found to associate security group with.")
+		return "", errors.New("no VPCs found to associate security group with")
 	}
 	vpcID := aws.StringValue(availableVPCs.Vpcs[0].VpcId)
 
@@ -174,9 +174,9 @@ func CreateSecurityGroupForSSH(region string, name string, description string) (
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case "InvalidVpcID.NotFound":
-				return "", fmt.Errorf("Unable to find VPC with ID %q.", vpcID)
+				return "", fmt.Errorf("unable to find VPC with ID %q", vpcID)
 			case "InvalidGroup.Duplicate":
-				return "", fmt.Errorf("Security group %q already exists.", name)
+				return "", fmt.Errorf("security group %q already exists", name)
 			}
 		}
 		return "", fmt.Errorf("Unable to create security group %q, %v", name, err)
@@ -223,15 +223,16 @@ func ListAllSecurityGroups(region string, sgID string) ([]*ec2.SecurityGroup, er
 			case "InvalidGroupId.Malformed":
 				fallthrough
 			case "InvalidGroup.NotFound":
-				return nil, fmt.Errorf("%s.", aerr.Message())
+				return nil, fmt.Errorf("%s", aerr.Message())
 			}
 		}
-		return nil, fmt.Errorf("Unable to get descriptions for security groups, %v", err)
+		return nil, fmt.Errorf("unable to get descriptions for security groups, %v", err)
 	}
 	return result.SecurityGroups, nil
 
 }
 
+// GetAmazonImageID is a function storing ami IDs anre returning then based on region
 func GetAmazonImageID(region string) string {
 	AMIs := make(map[string]string)
 
@@ -254,6 +255,7 @@ func GetAmazonImageID(region string) string {
 	return AMIs[region]
 }
 
+// GetSecurityGroupID is a func that returns SG ID basedo n region
 func GetSecurityGroupID(region string) string {
 	sgIDs := make(map[string]string)
 
@@ -276,6 +278,7 @@ func GetSecurityGroupID(region string) string {
 	return sgIDs[region]
 }
 
+// GetKeyPairs returns EC2 key pairs from given account for given region
 func GetKeyPairs(region string) ([]string, error) {
 	fmt.Println("Getting keys...")
 	keys := make([]string, 0)
@@ -299,6 +302,7 @@ func GetKeyPairs(region string) ([]string, error) {
 	return keys, nil
 }
 
+// PlotGraph is for plotting graphs
 func PlotGraph(region string, instanceID string, data []Metric) {
 	dimensions := 2
 	persist := false
@@ -316,6 +320,7 @@ func PlotGraph(region string, instanceID string, data []Metric) {
 	plot2.SavePlot(instanceID + "_" + data[1].MetricName + ".png")
 }
 
+// CreateInstance is for creating EC2 instances for given region, keypair, SG and AMI-ID
 func CreateInstance(region string, keypair string, sgparam string, amid string) (string, error) {
 	// Create Amazon AWS Session in the specified region
 	sess, err := session.NewSessionWithOptions(session.Options{
@@ -356,7 +361,7 @@ func CreateInstance(region string, keypair string, sgparam string, amid string) 
 	return newInstanceID, nil
 }
 
-// helper function to tag a newly created instance
+// TagInstance is a helper function to tag a newly created instance
 func TagInstance(region string, instanceid string, nametag string) error {
 
 	sess, err := session.NewSessionWithOptions(session.Options{
@@ -391,6 +396,7 @@ func TagInstance(region string, instanceid string, nametag string) error {
 	return nil
 }
 
+// StartInstance is helper func to start instance in region with given InstanceID
 func StartInstance(region string, instanceID string) error {
 	sess, err := session.NewSessionWithOptions(session.Options{
 		Profile: "personal-aws",
@@ -415,6 +421,7 @@ func StartInstance(region string, instanceID string) error {
 	return err
 }
 
+// StopInstance is helper func to stop instance with given ID in given region
 func StopInstance(region string, instanceID string) error {
 	sess, err := session.NewSessionWithOptions(session.Options{
 		Profile: "personal-aws",
@@ -438,6 +445,7 @@ func StopInstance(region string, instanceID string) error {
 	return err
 }
 
+// TerminateInstanceByID is helper func to terminate instance by ID
 func TerminateInstanceByID(region string, instanceID string) error {
 	sess, err := session.NewSessionWithOptions(session.Options{
 		Profile: "personal-aws",
@@ -469,10 +477,11 @@ func convertToFloatArray(input []int) []float64 {
 	return output
 }
 
+// RenderGraphs is helper func to render graphs
 func RenderGraphs(metricArray []Metric) {
 	if err := ui.Init(); err != nil {
+		fmt.Printf("failed to initialize termui: %v", err)
 		panic(err)
-		fmt.Println("failed to initialize termui: %v", err)
 	}
 	defer ui.Close()
 
@@ -531,6 +540,7 @@ func buildMetricDataQuery(metricname, instanceID string) *cloudwatch.MetricDataQ
 	}
 }
 
+// Metric struct to hold CW metrics data
 type Metric struct {
 	Region     string
 	InstanceID string
@@ -538,6 +548,7 @@ type Metric struct {
 	Values     []int
 }
 
+// GetCloudWatchMetrics to help get metrics for given Instance ID
 func GetCloudWatchMetrics(region string, instanceID string) []Metric {
 	counter = 0
 	sess, err := session.NewSessionWithOptions(session.Options{
@@ -566,13 +577,6 @@ func GetCloudWatchMetrics(region string, instanceID string) []Metric {
 	}
 	data := *dataOutput
 
-	//var CPUMetric Metric
-
-	//CPUMetric =
-
-	//fmt.Printf("%+v",data.MetricDataResults[0])
-	//fmt.Println(saveMetric(region, instanceID, data.MetricDataResults[0]))
-	//fmt.Println(saveMetric(region, instanceID, data.MetricDataResults[1]))
 	return []Metric{
 		saveMetric(region, instanceID, data.MetricDataResults[0]),
 		saveMetric(region, instanceID, data.MetricDataResults[1]),
