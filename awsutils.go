@@ -62,20 +62,20 @@ func isValidEC2Region(compare string) bool {
 
 }
 
-// it is helper function to validate region and open SVC session to EC2
-func openServiceClientEC2(region string) (*ec2.EC2, error) {
+// GetEC2ServiceClient it is helper function to validate region and open SVC session to EC2
+func GetEC2ServiceClient(region string) (*ec2.EC2, error) {
 
 	// validate region string
 	if !isValidEC2Region(region) {
 		return nil, errors.New("invalid region name")
 	}
+
 	// open session in region
 	sess, err := session.NewSessionWithOptions(session.Options{
 		Profile: "personal-aws",
-		Config: aws.Config{
-			Region: aws.String(region),
-		},
+		Config:  aws.Config{Region: aws.String(region)},
 	})
+
 	// check erros if any, otherwise return the session pointer
 	if err != nil {
 		return nil, err
@@ -91,7 +91,7 @@ func CreateEC2KeyPair(region string, keyname string) error {
 		return errors.New("unable to determine UNIX user HOME directory")
 	}
 
-	svc, err := openServiceClientEC2(region)
+	svc, err := GetEC2ServiceClient(region)
 	if err != nil {
 		return err
 	}
@@ -116,7 +116,7 @@ func CreateEC2KeyPair(region string, keyname string) error {
 // ListAllEC2KeyPairs is a function to list all AWS KeyPairs in region specified
 func ListAllEC2KeyPairs(region string) ([]*ec2.KeyPairInfo, error) {
 
-	svc, err := openServiceClientEC2(region)
+	svc, err := GetEC2ServiceClient(region)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +130,7 @@ func ListAllEC2KeyPairs(region string) ([]*ec2.KeyPairInfo, error) {
 // DeleteEC2KeyPair is a function to delete specified key in specified region
 func DeleteEC2KeyPair(region string, keyname string) error {
 
-	svc, err := openServiceClientEC2(region)
+	svc, err := GetEC2ServiceClient(region)
 	if err != nil {
 		return err
 	}
@@ -155,7 +155,7 @@ func CreateSecurityGroupForSSH(region string, name string, description string) (
 		return "", errors.New("Invalid Group name or Group Description supplied")
 	}
 
-	svc, err := openServiceClientEC2(region)
+	svc, err := GetEC2ServiceClient(region)
 	if err != nil {
 		return "", err
 	}
@@ -215,7 +215,7 @@ func CreateSecurityGroupForSSH(region string, name string, description string) (
 // ListAllSecurityGroups is a function to list all security groups, if sgID is "" then it lists all in the region
 func ListAllSecurityGroups(region string, sgID string) ([]*ec2.SecurityGroup, error) {
 
-	svc, err := openServiceClientEC2(region)
+	svc, err := GetEC2ServiceClient(region)
 	if err != nil {
 		return nil, err
 	}
