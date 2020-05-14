@@ -1,8 +1,8 @@
-## AWS Credentials Helper Library ##
+## AWS Utils Library
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/florianakos/awshelper)](https://goreportcard.com/report/github.com/florianakos/awshelper) [![Build Status](https://travis-ci.org/florianakos/awshelper.svg?branch=master)](https://travis-ci.org/florianakos/awshelper)
 
-This is a simple Go library that wraps the "AWS GO SDK" library to provide a way to create / list / delete AWS EC2 Security KeyPairs and Security Groups that allow through SSH by defualt.
+This is a simple Go library that wraps the "AWS GO SDK" library to provide some useful functions that create or modify AWS resources.
 
 ### Example Usage: ###
 
