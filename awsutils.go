@@ -1,4 +1,4 @@
-package awshelper
+package awsutils
 
 import (
 	"errors"
